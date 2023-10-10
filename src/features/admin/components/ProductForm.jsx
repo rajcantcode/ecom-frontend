@@ -177,8 +177,10 @@ function ProductForm() {
                   })}
                 >
                   <option value="">--choose category--</option>
-                  {categories.map((category) => (
-                    <option value={category.value}>{category.label}</option>
+                  {categories.map((category, i) => (
+                    <option key={`category-${i}`} value={category.value}>
+                      {category.label}
+                    </option>
                   ))}
                 </select>
               </div>

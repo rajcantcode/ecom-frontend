@@ -8,23 +8,25 @@ import {
   selectCartItems,
   updateCartAsync,
 } from "./cartSlice";
+import { discountedPrice } from "../../app/constants";
 
 const Cart = ({ open, setOpen }) => {
   //   const [open, setOpen] = useState(showCart);
   const dispatch = useDispatch();
-  const products = useSelector(selectCartItems);
-  const totalCost = products.reduce(
-    (amount, item) => item.price * item.quantity + amount,
+  const items = useSelector(selectCartItems);
+  const totalCost = items.reduce(
+    (amount, item) => discountedPrice(item) * item.quantity + amount,
     0
   );
-  const totalItems = products.reduce((total, item) => item.quantity + total, 0);
+  const totalItems = items.reduce((total, item) => item.quantity + total, 0);
 
-  const handleQuantity = (e, product) => {
+  const handleQuantity = (e, item) => {
     console.log(e.target.value);
-    dispatch(updateCartAsync({ ...product, quantity: +e.target.value }));
+    dispatch(updateCartAsync({ id: item.id, quantity: +e.target.value }));
   };
 
-  const handleRemoveItem = (id) => {
+  const handleRemoveItem = (id, item) => {
+    console.log(item);
     dispatch(deleteItemFromCartAsync(id));
   };
 
@@ -81,12 +83,12 @@ const Cart = ({ open, setOpen }) => {
                             role="list"
                             className="-my-6 divide-y divide-gray-200"
                           >
-                            {products.map((product) => (
-                              <li key={product.id} className="flex py-6">
+                            {items.map((item) => (
+                              <li key={item.product.id} className="flex py-6">
                                 <div className="flex-shrink-0 w-24 h-24 overflow-hidden border border-gray-200 rounded-md">
                                   <img
-                                    src={product.thumbnail}
-                                    alt={product.description}
+                                    src={item.product.thumbnail}
+                                    alt={item.product.description}
                                     className="object-cover object-center w-full h-full"
                                   />
                                 </div>
@@ -96,15 +98,17 @@ const Cart = ({ open, setOpen }) => {
                                     <div className="flex justify-between text-base font-medium text-gray-900">
                                       <h3>
                                         <Link
-                                          to={`/product-detail/${product.productId}`}
+                                          to={`/item.product-detail/${item.product.productId}`}
                                         >
-                                          {product.title}
+                                          {item.product.title}
                                         </Link>
                                       </h3>
-                                      <p className="ml-4">${product.price}</p>
+                                      <p className="ml-4">
+                                        ${item.product.price}
+                                      </p>
                                     </div>
                                     <p className="mt-1 text-sm text-gray-500">
-                                      {product.color}
+                                      {item.product.color}
                                     </p>
                                   </div>
                                   <div className="flex items-end justify-between flex-1 text-sm">
@@ -117,9 +121,9 @@ const Cart = ({ open, setOpen }) => {
                                       </label>
                                       <select
                                         onChange={(e) =>
-                                          handleQuantity(e, product)
+                                          handleQuantity(e, item)
                                         }
-                                        value={product.quantity}
+                                        value={item.quantity}
                                       >
                                         <option value="1">1</option>
                                         <option value="2">2</option>
@@ -131,7 +135,7 @@ const Cart = ({ open, setOpen }) => {
                                     <div className="flex">
                                       <button
                                         onClick={() =>
-                                          handleRemoveItem(product.id)
+                                          handleRemoveItem(item.id, item)
                                         }
                                         type="button"
                                         className="font-medium text-indigo-600 hover:text-indigo-500"

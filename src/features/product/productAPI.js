@@ -16,7 +16,7 @@ export function fetchProductById(id) {
   });
 }
 
-export function fetchProductsByFilters(filter, sort, pagination) {
+export function fetchProductsByFilters(filter, sort, pagination, admin) {
   // filter = {"category":["smartphone","laptops"]}
   // sort = {_sort:"price",_order="desc"}
   // pagination = {_page:1,_limit=10}
@@ -35,6 +35,10 @@ export function fetchProductsByFilters(filter, sort, pagination) {
   // console.log(pagination);
   for (let key in pagination) {
     queryString += `${key}=${pagination[key]}&`;
+  }
+
+  if (admin) {
+    queryString += "admin=true";
   }
 
   return new Promise(async (resolve) => {

@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchLoggedInUserOrderAsync, selectUserOrders } from "../userSlice";
 import { selectLoggedInUser } from "../../auth/authSlice";
+import { selectUserInfo } from "../userSlice";
 
 export default function UserOrders() {
   const dispatch = useDispatch();
+  const userInfo = useSelector(selectUserInfo);
   const user = useSelector(selectLoggedInUser);
   const orders = useSelector(selectUserOrders);
 
@@ -14,12 +17,15 @@ export default function UserOrders() {
 
   return (
     <div>
+      {console.log(orders)}
+      {console.log(userInfo)}
       {orders.map((order, i) => (
-        <div key={`order-${i + 1}`}>
+        <div key={order.id}>
+          {console.log(order)}
           <div>
             <div className="px-4 mx-auto mt-12 bg-white max-w-7xl sm:px-6 lg:px-8">
               <div className="px-4 py-6 border-t border-gray-200 sm:px-6">
-                <h1 className="my-5 text-4xl font-bold tracking-tight text-gray-900">
+                <h1 className="my-5 text-2xl font-bold tracking-tight text-gray-900 md:my-3 md:text-2xl ">
                   Order # {order.id}
                 </h1>
                 <h3 className="my-5 text-xl font-bold tracking-tight text-red-900">
@@ -31,8 +37,8 @@ export default function UserOrders() {
                       <li key={item.id} className="flex py-6">
                         <div className="flex-shrink-0 w-24 h-24 overflow-hidden border border-gray-200 rounded-md">
                           <img
-                            src={item.thumbnail}
-                            alt={item.title}
+                            src={item.product.thumbnail}
+                            alt={item.product.title}
                             className="object-cover object-center w-full h-full"
                           />
                         </div>
@@ -41,12 +47,14 @@ export default function UserOrders() {
                           <div>
                             <div className="flex justify-between text-base font-medium text-gray-900">
                               <h3>
-                                <a href={item.href}>{item.title}</a>
+                                <Link to={`/product-detail/${item.product.id}`}>
+                                  {item.product.title}
+                                </Link>
                               </h3>
-                              <p className="ml-4">${item.price}</p>
+                              <p className="ml-4">${item.product.price}</p>
                             </div>
                             <p className="mt-1 text-sm text-gray-500">
-                              {item.brand}
+                              {item.product.brand}
                             </p>
                           </div>
                           <div className="flex items-end justify-between flex-1 text-sm">

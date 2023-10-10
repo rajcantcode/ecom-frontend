@@ -18,9 +18,9 @@ const user = {
     "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
 };
 const navigation = [
-  { name: "Products", link: "/", user: true },
-  { name: "Products", link: "/admin", admin: true },
-  { name: "Orders", link: "/admin/orders", admin: true },
+  { name: "Products", link: "/", role: "user", current: true },
+  { name: "Products", link: "/admin", role: "admin", current: false },
+  { name: "Orders", link: "/admin/orders", role: "admin", current: false },
 ];
 const userNavigation = [
   { name: "My Profile", link: "/profile" },
@@ -32,7 +32,7 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
-const Navbar = ({ children }) => {
+const Navbar = ({ children, pageHeading }) => {
   const [showCart, setShowCart] = useState(false);
   const numberOfItemsInCart = useSelector(selectCartLength);
   const user = useSelector(selectLoggedInUser);
@@ -53,25 +53,27 @@ const Navbar = ({ children }) => {
                         alt="Your Company"
                       />
                     </div>
-                    <div className="hidden md:block">
+                    <div className="md:block">
                       <div className="flex items-baseline ml-10 space-x-4">
-                        {navigation.map((item) =>
-                          item[user.role] ? (
-                            <Link
-                              key={item.name}
-                              to={item.link}
-                              className={classNames(
-                                item.current
-                                  ? "bg-gray-900 text-white"
-                                  : "text-gray-300 hover:bg-gray-700 hover:text-white",
-                                "rounded-md px-3 py-2 text-sm font-medium"
-                              )}
-                              aria-current={item.current ? "page" : undefined}
-                            >
-                              {item.name}
-                            </Link>
-                          ) : null
-                        )}
+                        {navigation.map((item) => {
+                          if (user.role === item.role) {
+                            return (
+                              <Link
+                                key={item.name}
+                                to={item.link}
+                                className={classNames(
+                                  item.current
+                                    ? "bg-gray-900 text-white"
+                                    : "text-gray-300 hover:bg-gray-700 hover:text-white",
+                                  "rounded-md px-3 py-2 text-sm font-medium"
+                                )}
+                                aria-current={item.current ? "page" : undefined}
+                              >
+                                {item.name}
+                              </Link>
+                            );
+                          }
+                        })}
                       </div>
                     </div>
                   </div>
@@ -160,22 +162,26 @@ const Navbar = ({ children }) => {
 
               <Disclosure.Panel className="md:hidden">
                 <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                  {navigation.map((item) => (
-                    <Disclosure.Button
-                      key={item.name}
-                      as="a"
-                      href={item.href}
-                      className={classNames(
-                        item.current
-                          ? "bg-gray-900 text-white"
-                          : "text-gray-300 hover:bg-gray-700 hover:text-white",
-                        "block rounded-md px-3 py-2 text-base font-medium"
-                      )}
-                      aria-current={item.current ? "page" : undefined}
-                    >
-                      {item.name}
-                    </Disclosure.Button>
-                  ))}
+                  {navigation.map((item) => {
+                    if (user.role === item.role) {
+                      return (
+                        <Link
+                          key={item.name}
+                          //   as="a"
+                          to={item.link}
+                          className={classNames(
+                            item.current
+                              ? "bg-gray-900 text-white"
+                              : "text-gray-300 hover:bg-gray-700 hover:text-white",
+                            "block rounded-md px-3 py-2 text-base font-medium"
+                          )}
+                          aria-current={item.current ? "page" : undefined}
+                        >
+                          {item.name}
+                        </Link>
+                      );
+                    }
+                  })}
                 </div>
                 <div className="pt-4 pb-3 border-t border-gray-700">
                   <div className="flex items-center px-5">
@@ -213,14 +219,14 @@ const Navbar = ({ children }) => {
                   </div>
                   <div className="px-2 mt-3 space-y-1">
                     {userNavigation.map((item) => (
-                      <Disclosure.Button
+                      <Link
                         key={item.name}
                         as="a"
-                        href={item.href}
+                        to={item.link}
                         className="block px-3 py-2 text-base font-medium text-gray-400 rounded-md hover:bg-gray-700 hover:text-white"
                       >
                         {item.name}
-                      </Disclosure.Button>
+                      </Link>
                     ))}
                   </div>
                 </div>
@@ -232,7 +238,7 @@ const Navbar = ({ children }) => {
         <header className="bg-white shadow">
           <div className="px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
             <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-              E Commerce
+              {pageHeading || "E Commerce"}
             </h1>
           </div>
         </header>

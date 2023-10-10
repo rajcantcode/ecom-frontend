@@ -108,9 +108,7 @@ const Signin = () => {
             >
               Sign in
             </button>
-            {serverError && (
-              <p className="text-red-500">{serverError.message}</p>
-            )}
+            {serverError && <p className="text-red-500">{serverError}</p>}
           </div>
         </form>
 

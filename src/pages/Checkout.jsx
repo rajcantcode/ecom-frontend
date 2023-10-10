@@ -6,15 +6,14 @@ import {
   updateCartAsync,
 } from "../features/cart/cartSlice";
 import { useForm } from "react-hook-form";
-import {
-  selectLoggedInUser,
-  updateUserAsync,
-} from "../features/auth/authSlice";
+import { updateUserAsync } from "../features/user/userSlice";
 import { useState } from "react";
 import {
   createOrderAsync,
   selectCurrentOrder,
 } from "../features/order/orderSlice";
+import { selectUserInfo } from "../features/user/userSlice";
+import { selectLoggedInUser } from "../features/auth/authSlice";
 
 function Checkout() {
   const dispatch = useDispatch();
@@ -25,11 +24,12 @@ function Checkout() {
     formState: { errors },
   } = useForm();
 
+  const userInfo = useSelector(selectUserInfo);
   const user = useSelector(selectLoggedInUser);
   const items = useSelector(selectItems);
   const currentOrder = useSelector(selectCurrentOrder);
   const totalAmount = items.reduce(
-    (amount, item) => item.price * item.quantity + amount,
+    (amount, item) => item.product.price * item.quantity + amount,
     0
   );
   const totalItems = items.reduce((total, item) => item.quantity + total, 0);
@@ -38,7 +38,7 @@ function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState(null);
 
   const handleQuantity = (e, item) => {
-    dispatch(updateCartAsync({ ...item, quantity: +e.target.value }));
+    dispatch(updateCartAsync({ id: item.id, quantity: +e.target.value }));
   };
 
   const handleRemove = (e, id) => {
@@ -47,7 +47,7 @@ function Checkout() {
 
   const handleAddress = (e) => {
     // console.log(e.target.value);
-    setSelectedAddress(user.addresses[e.target.value]);
+    setSelectedAddress(userInfo.addresses[e.target.value]);
   };
 
   const handlePayment = (e) => {
@@ -57,11 +57,16 @@ function Checkout() {
 
   const handleOrder = (e) => {
     if (selectedAddress && paymentMethod) {
+      // Creating a new array of cart Items, because we do not want the use object to be passed in the new order
+      const newItems = items.map((obj) => {
+        const { user, ...newObj } = obj;
+        return newObj;
+      });
       const order = {
-        items,
+        items: newItems,
         totalAmount,
         totalItems,
-        user,
+        user: user.id,
         paymentMethod,
         selectedAddress,
         status: "pending",
@@ -95,10 +100,12 @@ function Checkout() {
               noValidate
               onSubmit={handleSubmit((data) => {
                 console.log(data);
+                console.log(userInfo);
                 dispatch(
                   updateUserAsync({
-                    ...user,
-                    addresses: [...user.addresses, data],
+                    ...userInfo,
+                    id: user.id,
+                    addresses: [...userInfo.addresses, data],
                   })
                 );
                 reset();
@@ -278,7 +285,7 @@ function Checkout() {
 
                 <div className="flex items-center justify-end mt-6 gap-x-6">
                   <button
-                    // onClick={e=>reset()}
+                    onClick={(e) => reset()}
                     type="button"
                     className="text-sm font-semibold leading-6 text-gray-900"
                   >
@@ -301,11 +308,13 @@ function Checkout() {
                 Choose from Existing addresses
               </p>
               <ul role="list">
-                {user.addresses.map((address, index) => (
+                {console.log(userInfo)}
+                {userInfo.addresses.map((address, index) => (
                   <li
                     key={index}
                     className="flex justify-between px-5 py-5 border-2 border-gray-200 border-solid gap-x-6"
                   >
+                    {console.log(address)}
                     <div className="flex gap-x-4">
                       <input
                         onChange={handleAddress}
@@ -395,11 +404,11 @@ function Checkout() {
                 <div className="flow-root">
                   <ul role="list" className="-my-6 divide-y divide-gray-200">
                     {items.map((item) => (
-                      <li key={item.id} className="flex py-6">
+                      <li key={item.product.id} className="flex py-6">
                         <div className="flex-shrink-0 w-24 h-24 overflow-hidden border border-gray-200 rounded-md">
                           <img
-                            src={item.thumbnail}
-                            alt={item.title}
+                            src={item.product.thumbnail}
+                            alt={item.product.title}
                             className="object-cover object-center w-full h-full"
                           />
                         </div>
@@ -408,12 +417,14 @@ function Checkout() {
                           <div>
                             <div className="flex justify-between text-base font-medium text-gray-900">
                               <h3>
-                                <a href={item.href}>{item.title}</a>
+                                <a href={item.product.href}>
+                                  {item.product.title}
+                                </a>
                               </h3>
-                              <p className="ml-4">${item.price}</p>
+                              <p className="ml-4">${item.product.price}</p>
                             </div>
                             <p className="mt-1 text-sm text-gray-500">
-                              {item.brand}
+                              {item.product.brand}
                             </p>
                           </div>
                           <div className="flex items-end justify-between flex-1 text-sm">
@@ -425,8 +436,10 @@ function Checkout() {
                                 Qty
                               </label>
                               <select
-                                onChange={(e) => handleQuantity(e, item)}
-                                value={item.quantity}
+                                onChange={(e) =>
+                                  handleQuantity(e, item.product)
+                                }
+                                value={item.product.quantity}
                               >
                                 <option value="1">1</option>
                                 <option value="2">2</option>
@@ -438,7 +451,9 @@ function Checkout() {
 
                             <div className="flex">
                               <button
-                                onClick={(e) => handleRemove(e, item.id)}
+                                onClick={(e) =>
+                                  handleRemove(e, item.product.id)
+                                }
                                 type="button"
                                 className="font-medium text-indigo-600 hover:text-indigo-500"
                               >

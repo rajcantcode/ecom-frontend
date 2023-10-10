@@ -1,10 +1,11 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { createOrder } from "./orderAPI";
+import { createOrder, fetchAllOrders, updateOrder } from "./orderAPI";
 
 const initialState = {
   orders: [],
   status: "idle",
   currentOrder: null,
+  totalOrders: null,
 };
 
 export const createOrderAsync = createAsyncThunk(

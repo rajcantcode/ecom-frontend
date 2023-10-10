@@ -12,20 +12,23 @@ export const createUser = (userData) => {
 
 export const checkUser = (loginInfo) => {
   return new Promise(async (resolve, reject) => {
-    const email = loginInfo.email;
-    const password = loginInfo.password;
-    const response = await fetch("http://localhost:8080/users?email=" + email);
-    const data = await response.json();
-
-    if (data.length) {
-      if (data[0].password === password) {
-        resolve({ data: data[0] });
+    try {
+      console.log("In check user");
+      const response = await fetch("http://localhost:8080/auth/login", {
+        method: "POST",
+        body: JSON.stringify(loginInfo),
+        headers: { "content-type": "application/json" },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        resolve({ data });
+      } else {
+        const error = await response.json();
+        throw error;
       }
-      if (data[0].password !== password) {
-        reject({ message: "invalid email id or password" });
-      }
-    } else {
-      reject({ message: "user not found" });
+    } catch (error) {
+      console.log("Error in checkUser and reject called");
+      reject(error);
     }
   });
 };
